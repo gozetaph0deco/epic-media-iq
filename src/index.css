@@ -1,0 +1,140 @@
+/* Font imports - must come first before @tailwind */
+@import '@fontsource/syne/400.css';
+@import '@fontsource/syne/500.css';
+@import '@fontsource/syne/600.css';
+@import '@fontsource/syne/700.css';
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+@import '@fontsource/inter/800.css';
+@import '@fontsource/poppins/300.css';
+@import '@fontsource/poppins/600.css';
+@import '@fontsource/poppins/700.css';
+@import '@fontsource/space-mono/400.css';
+@import '@fontsource/noto-kufi-arabic/400.css';
+@import '@fontsource/noto-kufi-arabic/500.css';
+@import '@fontsource/noto-kufi-arabic/700.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 33% 1%;
+    --foreground: 47 43% 92%;
+    --card: 270 30% 8%;
+    --card-foreground: 47 43% 92%;
+    --popover: 270 30% 8%;
+    --popover-foreground: 47 43% 92%;
+    --primary: 270 63% 46%;
+    --primary-foreground: 47 43% 98%;
+    --secondary: 0 100% 70%;
+    --secondary-foreground: 47 43% 98%;
+    --muted: 270 20% 12%;
+    --muted-foreground: 47 20% 60%;
+    --accent: 270 63% 46%;
+    --accent-foreground: 47 43% 98%;
+    --destructive: 0 100% 70%;
+    --destructive-foreground: 47 43% 98%;
+    --border: 270 30% 15%;
+    --input: 270 30% 15%;
+    --ring: 270 63% 46%;
+    --radius: 0.625rem;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-deep text-ivory font-body;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background: rgba(123, 44, 191, 0.4);
+    color: #FFFDF7;
+  }
+}
+
+@layer components {
+  .glass-card {
+    backdrop-filter: blur(20px);
+    background: rgba(20, 15, 30, 0.5);
+    border: 1px solid rgba(123, 44, 191, 0.15);
+    border-radius: 24px;
+  }
+
+  .neon-pulse-grid {
+    background-image:
+      linear-gradient(rgba(123, 44, 191, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(123, 44, 191, 0.06) 1px, transparent 1px);
+    background-size: 60px 60px;
+    animation: grid-pulse 4s ease-in-out infinite;
+  }
+
+  .iraqi-pattern {
+    background-image: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      rgba(123, 44, 191, 0.03) 10px,
+      rgba(123, 44, 191, 0.03) 11px
+    );
+  }
+
+  .gradient-bg {
+    background: linear-gradient(135deg, #7B2CBF 0%, #5A189A 35%, #240046 65%, #050401 100%);
+    background-size: 400% 400%;
+    animation: gradient-shift 15s ease infinite;
+  }
+
+  .gradient-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 30% 70%, rgba(255, 107, 107, 0.08) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .hero-aurora {
+    background:
+      radial-gradient(60% 55% at 22% 28%, rgba(123, 44, 191, 0.40), transparent 60%),
+      radial-gradient(55% 50% at 80% 32%, rgba(90, 24, 154, 0.34), transparent 60%),
+      radial-gradient(60% 55% at 50% 88%, rgba(255, 107, 107, 0.12), transparent 60%),
+      linear-gradient(180deg, #0a0613 0%, #060410 55%, #050401 100%);
+    background-size: 200% 200%, 200% 200%, 200% 200%, 100% 100%;
+    animation: aurora-drift 18s ease-in-out infinite;
+  }
+
+  .hero-vignette {
+    background: radial-gradient(circle at 50% 42%, transparent 38%, rgba(5, 4, 1, 0.6) 100%);
+  }
+
+  .hero-logo-glow {
+    animation: logo-glow 4.5s ease-in-out infinite;
+  }
+
+  .text-glow {
+    text-shadow: 0 0 30px rgba(123, 44, 191, 0.6);
+  }
+
+  .coral-glow {
+    text-shadow: 0 0 30px rgba(255, 107, 107, 0.5);
+  }
+}
+
+
+@keyframes aurora-drift {
+  0%, 100% { background-position: 0% 0%, 100% 0%, 50% 100%, 0 0; }
+  50% { background-position: 35% 25%, 65% 35%, 45% 75%, 0 0; }
+}
+
+@keyframes logo-glow {
+  0%, 100% { text-shadow: 0 0 30px rgba(123, 44, 191, 0.45); }
+  50% { text-shadow: 0 0 55px rgba(123, 44, 191, 0.85), 0 0 95px rgba(255, 107, 107, 0.25); }
+}
