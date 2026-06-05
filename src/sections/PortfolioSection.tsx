@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { assetUrl } from '../lib/assetUrl'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -10,7 +11,7 @@ const PROJECTS = [
     arabic: 'جلامور — الهوية البصرية',
     category: 'Brand Identity',
     description: 'A clean, elegant identity for Glamor beauty & dental clinic — a refined wordmark and a soft floral mark that reads instantly while still feeling premium.',
-    image: '/assets/project-glamor.jpg',
+    image: assetUrl('/assets/project-glamor.jpg'),
     stats: [
       { value: 'Logo', label: 'Design' },
       { value: 'Identity', label: 'System' },
@@ -21,7 +22,7 @@ const PROJECTS = [
     arabic: 'نيكو — هوية ومنتجات',
     category: 'Branding & Packaging',
     description: 'A modern identity for NEKO, blending Japanese type-craft with a bold purple & red palette. Logo, cups, and packaging mockups built into one cohesive system.',
-    image: '/assets/project-neko.jpg',
+    image: assetUrl('/assets/project-neko.jpg'),
     stats: [
       { value: 'Brand', label: 'Identity' },
       { value: 'Packaging', label: 'Mockups' },
@@ -32,7 +33,7 @@ const PROJECTS = [
     arabic: 'رُكن — كافيه ومطعم',
     category: 'Cafe Branding',
     description: 'A warm Arabic-calligraphy logo and full brand kit for ROKEN cafe — green and terracotta tones, social templates, and a story-led visual language.',
-    image: '/assets/project-roken.jpg',
+    image: assetUrl('/assets/project-roken.jpg'),
     stats: [
       { value: 'Logo', label: 'Calligraphy' },
       { value: 'Brand', label: 'Kit' },
@@ -43,7 +44,7 @@ const PROJECTS = [
     arabic: 'اعمار — للتصميم والديكور',
     category: 'Rebrand & Social',
     description: 'A complete rebrand for Aamar interior design & decor — a geometric mark and a polished social campaign that turns spaces into stories worth sharing.',
-    image: '/assets/project-aamar.jpg',
+    image: assetUrl('/assets/project-aamar.jpg'),
     stats: [
       { value: 'Rebrand', label: 'Identity' },
       { value: 'Social', label: 'Campaign' },
@@ -59,43 +60,45 @@ export default function PortfolioSection() {
     const section = sectionRef.current
     if (!section) return
 
-    gsap.from('.portfolio-heading', {
-      y: 30, opacity: 0, duration: 1, ease: 'power4.out',
-      scrollTrigger: { trigger: headerRef.current, start: 'top 85%', once: true },
-    })
-
-    const cards = section.querySelectorAll('.project-card')
-    cards.forEach((card) => {
-      const img = card.querySelector('.project-image')
-      const content = card.querySelector('.project-content')
-
-      gsap.from(img, {
-        x: -80, opacity: 0, duration: 1, ease: 'power4.out',
-        scrollTrigger: { trigger: card, start: 'top 75%', once: true },
+    const ctx = gsap.context(() => {
+      gsap.from('.portfolio-heading', {
+        y: 30, opacity: 0, duration: 1, ease: 'power4.out',
+        scrollTrigger: { trigger: headerRef.current, start: 'top 85%', once: true },
       })
-      gsap.from(content, {
-        x: 40, opacity: 0, duration: 1, delay: 0.1, ease: 'power4.out',
-        scrollTrigger: { trigger: card, start: 'top 75%', once: true },
-      })
-    })
 
-    gsap.from('.portfolio-viewall', {
-      y: 20, opacity: 0, duration: 0.8, ease: 'power4.out',
-      scrollTrigger: { trigger: '.portfolio-viewall', start: 'top 90%', once: true },
-    })
+      const cards = section.querySelectorAll('.project-card')
+      cards.forEach((card) => {
+        const img = card.querySelector('.project-image')
+        const content = card.querySelector('.project-content')
+
+        gsap.from(img, {
+          x: -80, opacity: 0, duration: 1, ease: 'power4.out',
+          scrollTrigger: { trigger: card, start: 'top 75%', once: true },
+        })
+        gsap.from(content, {
+          x: 40, opacity: 0, duration: 1, delay: 0.1, ease: 'power4.out',
+          scrollTrigger: { trigger: card, start: 'top 75%', once: true },
+        })
+      })
+
+      gsap.from('.portfolio-viewall', {
+        y: 20, opacity: 0, duration: 0.8, ease: 'power4.out',
+        scrollTrigger: { trigger: '.portfolio-viewall', start: 'top 90%', once: true },
+      })
+    }, section)
+
+    return () => ctx.revert()
   }, [])
 
   return (
     <section
       ref={sectionRef}
       id="portfolio"
-      className="relative bg-deep py-24 lg:py-40"
+      className="section-pad relative bg-deep content-auto"
     >
-      {/* Neon pulse grid background */}
       <div className="absolute inset-0 neon-pulse-grid opacity-30 pointer-events-none" />
 
-      <div className="relative z-10 max-w-[1440px] mx-auto px-6 lg:px-10">
-        {/* Section Header */}
+      <div className="container-wide relative z-10">
         <div ref={headerRef} className="text-center mb-16 lg:mb-24">
           <h2
             className="portfolio-heading font-display font-semibold text-warm"
@@ -105,29 +108,28 @@ export default function PortfolioSection() {
           </h2>
         </div>
 
-        {/* Project Cards */}
         <div className="flex flex-col gap-16 lg:gap-20">
-          {PROJECTS.map((project, i) => (
+          {PROJECTS.map((project) => (
             <div
-              key={i}
-              className="project-card glass-card p-6 lg:p-8 flex flex-col lg:flex-row items-center gap-8 lg:gap-12 group hover:border-coral/30 hover:shadow-card transition-all duration-400"
+              key={project.title}
+              className="project-card glass-card p-6 lg:p-8 flex flex-col lg:flex-row items-center gap-8 lg:gap-12 group hover:border-coral/30 hover:shadow-card transition-all duration-300"
             >
-              {/* Image */}
-              <div className="project-image relative w-full lg:w-[55%] aspect-video rounded-2xl overflow-hidden flex-shrink-0">
+              <div className="project-image relative w-full lg:w-[55%] aspect-video rounded-2xl overflow-hidden flex-shrink-0 bg-purple/10">
                 <img
                   src={project.image}
                   alt={project.title}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   loading="lazy"
                   decoding="async"
+                  width={1280}
+                  height={720}
                 />
                 <div
-                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
                   style={{ background: 'linear-gradient(135deg, rgba(123, 44, 191, 0.2), rgba(255, 107, 107, 0.15))' }}
                 />
               </div>
 
-              {/* Content */}
               <div className="project-content w-full lg:w-[45%] text-left">
                 <span className="inline-block px-3 py-1 rounded-lg bg-purple/15 text-purple font-mono text-[11px] uppercase tracking-wider mb-3">
                   {project.category}
@@ -149,8 +151,8 @@ export default function PortfolioSection() {
                 </p>
 
                 <div className="flex gap-6 mb-5">
-                  {project.stats.map((stat, j) => (
-                    <div key={j} className="flex items-baseline gap-1.5">
+                  {project.stats.map((stat) => (
+                    <div key={stat.label} className="flex items-baseline gap-1.5">
                       <span className="font-display font-semibold text-lg text-warm">{stat.value}</span>
                       <span className="font-mono text-[10px] text-ivory/40 uppercase">{stat.label}</span>
                     </div>
@@ -161,7 +163,6 @@ export default function PortfolioSection() {
           ))}
         </div>
 
-        {/* View All Projects */}
         <div className="portfolio-viewall text-center mt-12 lg:mt-16">
           <a
             href="https://instagram.com/epicmedia.iq"

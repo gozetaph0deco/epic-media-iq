@@ -48,11 +48,13 @@ module.exports = {
         midpurple: "#5A189A",
       },
       fontFamily: {
-        display: ['"Clash Display"', 'Syne', 'sans-serif'],
+        display: ['Syne', 'sans-serif'],
         body: ['Inter', 'sans-serif'],
         mono: ['"Space Mono"', 'monospace'],
         arabic: ['"Noto Kufi Arabic"', 'sans-serif'],
-        logo: ['Poppins', 'Inter', 'sans-serif'],
+      },
+      transitionDuration: {
+        400: '400ms',
       },
       borderRadius: {
         xl: "calc(var(--radius) + 4px)",

@@ -1,19 +1,11 @@
-/* Font imports - must come first before @tailwind */
-@import '@fontsource/syne/400.css';
-@import '@fontsource/syne/500.css';
+/* Font imports — trimmed to weights actually used on the site */
 @import '@fontsource/syne/600.css';
 @import '@fontsource/syne/700.css';
 @import '@fontsource/inter/400.css';
 @import '@fontsource/inter/500.css';
 @import '@fontsource/inter/600.css';
-@import '@fontsource/inter/700.css';
-@import '@fontsource/inter/800.css';
-@import '@fontsource/poppins/300.css';
-@import '@fontsource/poppins/600.css';
-@import '@fontsource/poppins/700.css';
 @import '@fontsource/space-mono/400.css';
 @import '@fontsource/noto-kufi-arabic/400.css';
-@import '@fontsource/noto-kufi-arabic/500.css';
 @import '@fontsource/noto-kufi-arabic/700.css';
 
 @tailwind base;
@@ -42,10 +34,11 @@
     --input: 270 30% 15%;
     --ring: 270 63% 46%;
     --radius: 0.625rem;
+    --container-max: 1280px;
   }
 
   html {
-    scroll-behavior: smooth;
+    scroll-behavior: auto;
   }
 
   body {
@@ -59,12 +52,31 @@
     background: rgba(123, 44, 191, 0.4);
     color: #FFFDF7;
   }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
 }
 
 @layer components {
+  .container-wide {
+    @apply w-full max-w-[1280px] mx-auto px-6 lg:px-10;
+  }
+
+  .section-pad {
+    @apply py-24 lg:py-32;
+  }
+
+  .content-auto {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 800px;
+  }
+
   .glass-card {
-    backdrop-filter: blur(20px);
-    background: rgba(20, 15, 30, 0.5);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    background: rgba(20, 15, 30, 0.55);
     border: 1px solid rgba(123, 44, 191, 0.15);
     border-radius: 24px;
   }
@@ -112,8 +124,31 @@
   }
 
   .hero-vignette {
-    background: radial-gradient(circle at 50% 42%, transparent 38%, rgba(5, 4, 1, 0.6) 100%);
+    background:
+      radial-gradient(circle at 50% 38%, transparent 32%, rgba(5, 4, 1, 0.55) 100%),
+      linear-gradient(to bottom, rgba(5, 4, 1, 0.35) 0%, transparent 18%, transparent 82%, rgba(5, 4, 1, 0.5) 100%);
   }
+
+  .hero-grain {
+    opacity: 0.045;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 180px 180px;
+  }
+
+  .hero-headline-accent {
+    background: linear-gradient(105deg, #C9A6FF 0%, #7B2CBF 42%, #FF6B6B 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .hero-frame {
+    animation: frame-fade 6s ease-in-out infinite;
+  }
+
+  .hero-frame:nth-child(2) { animation-delay: -1.5s; }
+  .hero-frame:nth-child(3) { animation-delay: -3s; }
+  .hero-frame:nth-child(4) { animation-delay: -4.5s; }
 
   .hero-logo-glow {
     animation: logo-glow 4.5s ease-in-out infinite;
@@ -128,13 +163,58 @@
   }
 }
 
-
 @keyframes aurora-drift {
   0%, 100% { background-position: 0% 0%, 100% 0%, 50% 100%, 0 0; }
   50% { background-position: 35% 25%, 65% 35%, 45% 75%, 0 0; }
 }
 
+@keyframes frame-fade {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.85; }
+}
+
 @keyframes logo-glow {
   0%, 100% { text-shadow: 0 0 30px rgba(123, 44, 191, 0.45); }
   50% { text-shadow: 0 0 55px rgba(123, 44, 191, 0.85), 0 0 95px rgba(255, 107, 107, 0.25); }
+}
+
+.hero-logo-img {
+  filter: drop-shadow(0 0 45px rgba(123, 44, 191, 0.55));
+  animation: logo-img-glow 4.5s ease-in-out 2.4s infinite;
+}
+
+@keyframes logo-img-glow {
+  0%, 100% { filter: drop-shadow(0 0 35px rgba(123, 44, 191, 0.45)); }
+  50% {
+    filter: drop-shadow(0 0 60px rgba(123, 44, 191, 0.85))
+            drop-shadow(0 0 95px rgba(255, 107, 107, 0.22));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-logo-glow,
+  .hero-frame,
+  .hero-logo-img,
+  .neon-pulse-grid,
+  .gradient-bg,
+  .hero-aurora {
+    animation: none !important;
+  }
+
+  .hero-frame {
+    opacity: 0.5;
+  }
+
+  .hero-logo-img {
+    filter: drop-shadow(0 0 35px rgba(123, 44, 191, 0.45));
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

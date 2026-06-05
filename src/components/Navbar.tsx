@@ -1,14 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Logo from './Logo'
-
-gsap.registerPlugin(ScrollTrigger)
+import { scrollToSelector, scrollToTop, useLenis } from '../context/LenisContext'
 
 const navLinks = [
   { label: 'Work', href: '#portfolio' },
-  { label: 'Services', href: '#showreel' },
-  { label: 'About', href: '#showreel' },
+  { label: 'Studio', href: '#showreel' },
   { label: 'Contact', href: '#contact' },
 ]
 
@@ -16,6 +13,7 @@ export default function Navbar() {
   const navRef = useRef<HTMLElement>(null)
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const lenis = useLenis()
 
   useEffect(() => {
     const nav = navRef.current
@@ -40,10 +38,7 @@ export default function Navbar() {
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault()
     setMenuOpen(false)
-    const el = document.querySelector(href)
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' })
-    }
+    scrollToSelector(href, lenis)
   }
 
   return (
@@ -52,16 +47,22 @@ export default function Navbar() {
       className={`fixed top-0 left-0 right-0 z-[1000] h-20 flex items-center transition-all duration-500 ${
         scrolled
           ? 'backdrop-blur-xl bg-deep/85 border-b border-purple/10'
-          : 'bg-transparent'
+          : 'bg-gradient-to-b from-deep/70 via-deep/20 to-transparent'
       }`}
     >
-      <div className="w-full max-w-[1440px] mx-auto px-6 lg:px-10 flex items-center justify-between">
-        {/* Logo */}
-        <a href="#" className="nav-item flex items-center group" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>
-          <Logo colorClass="text-warm" className="text-2xl" />
+      <div className="container-wide flex items-center justify-between">
+        <a
+          href="#hero"
+          className="nav-item flex items-center group"
+          onClick={(e) => {
+            e.preventDefault()
+            setMenuOpen(false)
+            scrollToTop(lenis)
+          }}
+        >
+          <Logo className="text-2xl" />
         </a>
 
-        {/* Desktop Nav Links */}
         <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
             <a
@@ -76,7 +77,6 @@ export default function Navbar() {
           ))}
         </div>
 
-        {/* CTA Button */}
         <a
           href="#contact"
           onClick={(e) => handleNavClick(e, '#contact')}
@@ -85,11 +85,12 @@ export default function Navbar() {
           Start a Project
         </a>
 
-        {/* Mobile Hamburger */}
         <button
+          type="button"
           className="md:hidden nav-item flex flex-col gap-1.5 p-2"
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="Toggle menu"
+          aria-expanded={menuOpen}
         >
           <span className={`w-6 h-[2px] bg-warm transition-all duration-300 ${menuOpen ? 'rotate-45 translate-y-[5px]' : ''}`} />
           <span className={`w-6 h-[2px] bg-warm transition-all duration-300 ${menuOpen ? 'opacity-0' : ''}`} />
@@ -97,7 +98,6 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* Mobile Menu */}
       <div
         className={`md:hidden absolute top-20 left-0 right-0 backdrop-blur-xl bg-deep/95 border-b border-purple/10 transition-all duration-500 overflow-hidden ${
           menuOpen ? 'max-h-[400px] opacity-100' : 'max-h-0 opacity-0'

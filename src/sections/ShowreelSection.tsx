@@ -1,16 +1,20 @@
 import { useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import LazyVideo from '../components/LazyVideo'
+import { assetUrl } from '../lib/assetUrl'
+import { useIsMobile } from '../hooks/useIsMobile'
+import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion'
 
 gsap.registerPlugin(ScrollTrigger)
 
 const REELS = [
-  '/assets/reel1.mp4',
-  '/assets/reel2.mp4',
-  '/assets/reel3.mp4',
-  '/assets/reel4.mp4',
-  '/assets/reel5.mp4',
-  '/assets/reel6.mp4',
+  assetUrl('/assets/reel1.mp4'),
+  assetUrl('/assets/reel2.mp4'),
+  assetUrl('/assets/reel3.mp4'),
+  assetUrl('/assets/reel4.mp4'),
+  assetUrl('/assets/reel5.mp4'),
+  assetUrl('/assets/reel6.mp4'),
 ]
 
 const FEATURES = [
@@ -50,61 +54,69 @@ const STATS = [
 export default function ShowreelSection() {
   const sectionRef = useRef<HTMLDivElement>(null)
   const [counts, setCounts] = useState([0, 0])
+  const isMobile = useIsMobile()
+  const reducedMotion = usePrefersReducedMotion()
+  const showVideos = !isMobile && !reducedMotion
 
   useEffect(() => {
     const section = sectionRef.current
     if (!section) return
 
-    const tl = gsap.timeline({
-      scrollTrigger: { trigger: section, start: 'top 70%', once: true },
-    })
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline({
+        scrollTrigger: { trigger: section, start: 'top 70%', once: true },
+      })
 
-    tl.from('.showreel-heading', { y: 40, opacity: 0, duration: 1, ease: 'power4.out' })
-      .from('.showreel-body', { y: 20, opacity: 0, duration: 0.8, ease: 'power4.out' }, '-=0.6')
-      .from('.showreel-arabic', { y: 20, opacity: 0, duration: 0.8, ease: 'power4.out' }, '-=0.55')
-      .from('.showreel-card', { y: 60, opacity: 0, duration: 0.8, stagger: 0.15, ease: 'power4.out' }, '-=0.4')
-      .from('.showreel-stat', { y: 30, opacity: 0, duration: 0.6, stagger: 0.1, ease: 'power4.out' }, '-=0.3')
+      tl.from('.showreel-heading', { y: 40, opacity: 0, duration: 1, ease: 'power4.out' })
+        .from('.showreel-body', { y: 20, opacity: 0, duration: 0.8, ease: 'power4.out' }, '-=0.6')
+        .from('.showreel-arabic', { y: 20, opacity: 0, duration: 0.8, ease: 'power4.out' }, '-=0.55')
+        .from('.showreel-card', { y: 60, opacity: 0, duration: 0.8, stagger: 0.15, ease: 'power4.out' }, '-=0.4')
+        .from('.showreel-stat', { y: 30, opacity: 0, duration: 0.6, stagger: 0.1, ease: 'power4.out' }, '-=0.3')
 
-    const countObj = { a: 0, b: 0 }
-    const countTween = gsap.to(countObj, {
-      a: 500,
-      b: 50,
-      duration: 1.5,
-      ease: 'power2.out',
-      scrollTrigger: { trigger: '.showreel-stats-row', start: 'top 80%', once: true },
-      onUpdate: () => setCounts([Math.round(countObj.a), Math.round(countObj.b)]),
-    })
+      const countObj = { a: 0, b: 0 }
+      gsap.to(countObj, {
+        a: 500,
+        b: 50,
+        duration: 1.5,
+        ease: 'power2.out',
+        scrollTrigger: { trigger: '.showreel-stats-row', start: 'top 80%', once: true },
+        onUpdate: () => setCounts([Math.round(countObj.a), Math.round(countObj.b)]),
+      })
+    }, section)
 
-    return () => {
-      tl.kill()
-      countTween.kill()
-    }
+    return () => ctx.revert()
   }, [])
 
   return (
     <section
       ref={sectionRef}
       id="showreel"
-      className="relative min-h-screen overflow-hidden"
+      className="section-pad relative min-h-screen overflow-hidden content-auto"
     >
-      {/* Video grid background */}
-      <div className="absolute inset-0 z-0 grid grid-cols-2 md:grid-cols-3 grid-rows-3 md:grid-rows-2">
-        {REELS.map((src, i) => (
-          <video
-            key={i}
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            className="w-full h-full object-cover"
-          >
-            <source src={src} type="video/mp4" />
-          </video>
-        ))}
+      {/* Background — static gradient on mobile, lazy videos on desktop */}
+      <div className="absolute inset-0 z-0">
+        {showVideos ? (
+          <div className="grid h-full grid-cols-2 md:grid-cols-3 grid-rows-3 md:grid-rows-2">
+            {REELS.map((src, i) => (
+              <LazyVideo
+                key={src}
+                src={src}
+                eager={i < 2}
+                className="h-full w-full object-cover"
+              />
+            ))}
+          </div>
+        ) : (
+          <div
+            className="h-full w-full"
+            style={{
+              background:
+                'linear-gradient(135deg, #240046 0%, #5A189A 35%, #050401 70%, #0a0613 100%)',
+            }}
+          />
+        )}
       </div>
 
-      {/* Overlays for legibility */}
       <div
         className="absolute inset-0 z-[1]"
         style={{
@@ -112,11 +124,9 @@ export default function ShowreelSection() {
             'linear-gradient(to bottom, rgba(5,4,1,0.82) 0%, rgba(5,4,1,0.62) 40%, rgba(5,4,1,0.72) 70%, rgba(5,4,1,0.92) 100%)',
         }}
       />
-      <div className="absolute inset-0 z-[1] iraqi-pattern opacity-40" />
+      <div className="absolute inset-0 z-[1] iraqi-pattern opacity-40 pointer-events-none" />
 
-      {/* Content */}
-      <div className="relative z-10 max-w-[1200px] mx-auto px-6 lg:px-10 py-32 lg:py-40 flex flex-col items-center text-center">
-        {/* Heading */}
+      <div className="container-wide relative z-10 flex flex-col items-center py-32 text-center lg:py-40">
         <h2
           className="showreel-heading font-display font-semibold text-warm mb-6"
           style={{
@@ -128,12 +138,10 @@ export default function ShowreelSection() {
           Where Ideas Become Reality
         </h2>
 
-        {/* Body text */}
         <p className="showreel-body font-body text-ivory/80 max-w-[640px] leading-relaxed mb-4" style={{ fontSize: 'clamp(1rem, 1.3vw, 1.25rem)' }}>
           From the first concept to the final post, we turn ideas into content people actually watch, share, and remember. A Baghdad studio building brands, campaigns, and identities across every screen.
         </p>
 
-        {/* Arabic quote */}
         <p
           className="showreel-arabic font-arabic mb-12"
           dir="rtl"
@@ -142,12 +150,11 @@ export default function ShowreelSection() {
           من الفكرة إلى الواقع — نحوّل الرؤى إلى محتوى يعيشه الناس
         </p>
 
-        {/* Feature Cards */}
         <div className="flex flex-col md:flex-row gap-8 mb-12 w-full max-w-[800px]">
-          {FEATURES.map((feature, i) => (
+          {FEATURES.map((feature) => (
             <div
-              key={i}
-              className="showreel-card glass-card p-8 flex-1 text-left group hover:border-coral/40 hover:shadow-card transition-all duration-400"
+              key={feature.title}
+              className="showreel-card glass-card p-8 flex-1 text-left group hover:border-coral/40 hover:shadow-card transition-all duration-300"
             >
               <div className="mb-5 group-hover:scale-105 transition-transform duration-300">
                 {feature.icon}
@@ -162,10 +169,9 @@ export default function ShowreelSection() {
           ))}
         </div>
 
-        {/* Stats */}
         <div className="showreel-stats-row flex flex-wrap justify-center gap-8 md:gap-16">
           {STATS.map((stat, i) => (
-            <div key={i} className="showreel-stat text-center">
+            <div key={stat.label} className="showreel-stat text-center">
               <p
                 className="font-display font-semibold text-warm"
                 style={{ fontSize: 'clamp(2rem, 4vw, 3.5rem)' }}

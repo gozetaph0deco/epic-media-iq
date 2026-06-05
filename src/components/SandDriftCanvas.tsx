@@ -1,8 +1,16 @@
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
+import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion'
 
-const PARTICLE_COUNT = 1800
 const COLORS = ['#7B2CBF', '#FF6B6B', '#F4F1DE', '#5A189A']
+
+function getParticleCount() {
+  const mobile = window.innerWidth < 768
+  const lowPower = navigator.hardwareConcurrency <= 4
+  if (mobile) return 600
+  if (lowPower) return 1000
+  return 1400
+}
 
 const vertexShader = `
   attribute float size;
@@ -28,36 +36,37 @@ const fragmentShader = `
 
 export default function SandDriftCanvas() {
   const containerRef = useRef<HTMLDivElement>(null)
-  const rendererRef = useRef<THREE.WebGLRenderer | null>(null)
   const frameRef = useRef<number>(0)
   const mouseRef = useRef({ x: 0, y: 0 })
+  const reducedMotion = usePrefersReducedMotion()
 
   useEffect(() => {
+    if (reducedMotion) return
+
     const container = containerRef.current
     if (!container) return
 
+    const particleCount = getParticleCount()
     const scene = new THREE.Scene()
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000)
     camera.position.z = 300
 
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false })
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false, powerPreference: 'high-performance' })
     renderer.setSize(window.innerWidth, window.innerHeight)
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
     renderer.domElement.style.width = '100%'
     renderer.domElement.style.height = '100%'
     renderer.domElement.style.display = 'block'
     container.appendChild(renderer.domElement)
-    rendererRef.current = renderer
 
-    // Create particles
-    const positions = new Float32Array(PARTICLE_COUNT * 3)
-    const colors = new Float32Array(PARTICLE_COUNT * 3)
-    const sizes = new Float32Array(PARTICLE_COUNT)
-    const velocities = new Float32Array(PARTICLE_COUNT * 3)
+    const positions = new Float32Array(particleCount * 3)
+    const colors = new Float32Array(particleCount * 3)
+    const sizes = new Float32Array(particleCount)
+    const velocities = new Float32Array(particleCount * 3)
 
     const palette = COLORS.map((c) => new THREE.Color(c))
 
-    for (let i = 0; i < PARTICLE_COUNT; i++) {
+    for (let i = 0; i < particleCount; i++) {
       positions[i * 3] = (Math.random() - 0.5) * 800
       positions[i * 3 + 1] = (Math.random() - 0.5) * 600
       positions[i * 3 + 2] = (Math.random() - 0.5) * 400
@@ -87,43 +96,74 @@ export default function SandDriftCanvas() {
       blending: THREE.AdditiveBlending,
     })
 
-    const particles = new THREE.Points(geometry, material)
-    scene.add(particles)
+    scene.add(new THREE.Points(geometry, material))
 
-    // Mouse interaction
+    let paused = false
+    let heroVisible = true
+    let lastMouseUpdate = 0
+
     const handleMouseMove = (e: MouseEvent) => {
+      const now = performance.now()
+      if (now - lastMouseUpdate < 32) return
+      lastMouseUpdate = now
       mouseRef.current.x = (e.clientX / window.innerWidth) * 2 - 1
       mouseRef.current.y = -(e.clientY / window.innerHeight) * 2 + 1
     }
-    window.addEventListener('mousemove', handleMouseMove, { passive: true })
 
-    // Resize
+    const handleVisibility = () => {
+      paused = document.hidden
+    }
+
+    const handleScroll = () => {
+      heroVisible = window.scrollY < window.innerHeight * 1.2
+    }
+
     const handleResize = () => {
       camera.aspect = window.innerWidth / window.innerHeight
       camera.updateProjectionMatrix()
       renderer.setSize(window.innerWidth, window.innerHeight)
     }
-    window.addEventListener('resize', handleResize, { passive: true })
 
-    // Animation loop
+    window.addEventListener('mousemove', handleMouseMove, { passive: true })
+    window.addEventListener('visibilitychange', handleVisibility)
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    window.addEventListener('resize', handleResize, { passive: true })
+    handleScroll()
+
     const clock = new THREE.Clock()
+    let skipFrames = 0
+
     const animate = () => {
       frameRef.current = requestAnimationFrame(animate)
+
+      if (paused || !heroVisible) {
+        if (!heroVisible && renderer.domElement.style.opacity !== '0') {
+          renderer.domElement.style.opacity = '0'
+          renderer.domElement.style.transition = 'opacity 0.6s ease'
+        }
+        return
+      }
+
+      if (renderer.domElement.style.opacity === '0') {
+        renderer.domElement.style.opacity = '1'
+      }
+
+      skipFrames += 1
+      if (skipFrames % 2 !== 0 && window.innerWidth < 1024) return
+
       const delta = clock.getDelta()
       const elapsed = clock.getElapsedTime()
 
       const posAttr = geometry.attributes.position as THREE.BufferAttribute
       const posArray = posAttr.array as Float32Array
 
-      for (let i = 0; i < PARTICLE_COUNT; i++) {
+      for (let i = 0; i < particleCount; i++) {
         const idx = i * 3
 
-        // Drift left with noise
         posArray[idx] -= velocities[idx] * delta * 60 * 0.4
         posArray[idx + 1] += Math.sin(elapsed * 0.5 + i * 0.01) * 0.15
         posArray[idx + 2] += Math.cos(elapsed * 0.3 + i * 0.02) * 0.1
 
-        // Mouse attraction (subtle)
         const mx = mouseRef.current.x * 300
         const my = mouseRef.current.y * 200
         const dx = mx - posArray[idx]
@@ -135,7 +175,6 @@ export default function SandDriftCanvas() {
           posArray[idx + 1] += (dy / dist) * strength
         }
 
-        // Wrap around
         if (posArray[idx] < -400) {
           posArray[idx] = 400
           posArray[idx + 1] = (Math.random() - 0.5) * 600
@@ -151,6 +190,8 @@ export default function SandDriftCanvas() {
     return () => {
       cancelAnimationFrame(frameRef.current)
       window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('visibilitychange', handleVisibility)
+      window.removeEventListener('scroll', handleScroll)
       window.removeEventListener('resize', handleResize)
       geometry.dispose()
       material.dispose()
@@ -159,13 +200,14 @@ export default function SandDriftCanvas() {
         container.removeChild(renderer.domElement)
       }
     }
-  }, [])
+  }, [reducedMotion])
 
   return (
     <div
       ref={containerRef}
       className="fixed inset-0 z-0 pointer-events-none"
       style={{ background: '#050401' }}
+      aria-hidden
     />
   )
 }
